@@ -293,6 +293,58 @@ function App() {
           )}
         </div>
       </div>
+      
+      {/* Footer */}
+      <footer className="mt-16 text-center animate-fadeIn">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="border-t border-gray-200 pt-8 pb-6 transform transition-all duration-1000 hover:scale-105">
+            <div className="animate-pulse-slow">
+              <p className="text-gray-600 text-sm mb-2 transition-colors duration-300 hover:text-blue-600">
+                Powered by <span className="font-semibold text-gray-800 hover:text-blue-700 transition-colors duration-300 cursor-pointer transform hover:scale-110 inline-block">orderdabaly LLC</span>
+              </p>
+            </div>
+            <p className="text-gray-500 text-xs transition-all duration-300 hover:text-gray-700 animate-slideUp">
+              © {new Date().getFullYear()} orderdabaly LLC. All rights reserved.
+            </p>
+            
+            {/* Animated decorative elements */}
+            <div className="flex justify-center mt-4 space-x-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+            </div>
+          </div>
+        </div>
+      </footer>
+      
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 1.5s ease-out;
+        }
+        
+        .animate-slideUp {
+          animation: slideUp 1s ease-out 0.5s both;
+        }
+        
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 }
