@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import QRCode from 'react-qr-code';
+import jsPDF from 'jspdf';
 
 function App() {
   const [text, setText] = useState('');
@@ -29,13 +30,71 @@ function App() {
     const svg = document.getElementById('qr-code');
     const svgData = new XMLSerializer().serializeToString(svg);
     const targetSize = getSizeInPixels(size);
+    const filename = getFilenameSafe();
+    const displayName = getDisplayName();
+    
+    if (format === 'PDF') {
+      // PDF generation
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Set canvas size for high quality
+        const qrSize = 60; // Reduced QR code size in PDF (mm)
+        canvas.width = qrSize * 3; // High resolution
+        canvas.height = qrSize * 3;
+        
+        // Draw QR code with white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Create PDF
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+        
+        // Add title
+        pdf.setFontSize(18);
+        pdf.text(displayName, 105, 25, { align: 'center' });
+        
+        // Add QR code image
+        const qrDataUrl = canvas.toDataURL('image/png', 1.0);
+        const qrX = (210 - qrSize) / 2; // Center on A4 width (210mm)
+        const qrY = 40; // Position from top
+        pdf.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        
+        // Add content info
+        pdf.setFontSize(12);
+        pdf.text('Content:', 20, qrY + qrSize + 15);
+        
+        // Split long text into multiple lines
+        const contentLines = pdf.splitTextToSize(qrValue, 170); // Max width 170mm
+        pdf.text(contentLines, 20, qrY + qrSize + 25);
+        
+        // Add footer
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text('Generated with QR Code Generator', 105, 270, { align: 'center' });
+        pdf.text('Powered by orderdabaly LLC', 105, 275, { align: 'center' });
+        
+        // Save PDF
+        pdf.save(`${filename}-${size.toLowerCase().replace(' ', '-')}.pdf`);
+        setShowDownloadOptions(false);
+      };
+      
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+      return;
+    }
     
     if (format === 'SVG') {
       // Direct SVG download
       const blob = new Blob([svgData], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
       const downloadLink = document.createElement('a');
-      const filename = getFilenameSafe();
       downloadLink.download = `${filename}-${size.toLowerCase().replace(' ', '-')}.svg`;
       downloadLink.href = url;
       downloadLink.click();
@@ -68,7 +127,6 @@ function App() {
       
       const downloadLink = document.createElement('a');
       const extension = format.toLowerCase();
-      const filename = getFilenameSafe();
       downloadLink.download = `${filename}-${size.toLowerCase().replace(' ', '-')}.${extension}`;
       downloadLink.href = dataUrl;
       downloadLink.click();
@@ -227,8 +285,8 @@ function App() {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Format:</label>
-                          <div className="flex gap-2">
-                            {['PNG', 'JPG', 'SVG'].map((format) => (
+                          <div className="grid grid-cols-2 gap-2">
+                            {['PNG', 'JPG', 'SVG', 'PDF'].map((format) => (
                               <button
                                 key={format}
                                 onClick={() => setDownloadFormat(format)}
