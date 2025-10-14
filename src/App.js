@@ -4,6 +4,7 @@ import QRCode from 'react-qr-code';
 function App() {
   const [text, setText] = useState('');
   const [qrValue, setQrValue] = useState('');
+  const [qrName, setQrName] = useState('');
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState('PNG');
   const [downloadSize, setDownloadSize] = useState('Medium');
@@ -34,7 +35,8 @@ function App() {
       const blob = new Blob([svgData], { type: 'image/svg+xml' });
       const url = URL.createObjectURL(blob);
       const downloadLink = document.createElement('a');
-      downloadLink.download = `qr-code-${size.toLowerCase().replace(' ', '-')}.svg`;
+      const filename = getFilenameSafe();
+      downloadLink.download = `${filename}-${size.toLowerCase().replace(' ', '-')}.svg`;
       downloadLink.href = url;
       downloadLink.click();
       URL.revokeObjectURL(url);
@@ -66,7 +68,8 @@ function App() {
       
       const downloadLink = document.createElement('a');
       const extension = format.toLowerCase();
-      downloadLink.download = `qr-code-${size.toLowerCase().replace(' ', '-')}.${extension}`;
+      const filename = getFilenameSafe();
+      downloadLink.download = `${filename}-${size.toLowerCase().replace(' ', '-')}.${extension}`;
       downloadLink.href = dataUrl;
       downloadLink.click();
       
@@ -76,16 +79,31 @@ function App() {
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
+  const getDisplayName = () => {
+    return qrName.trim() || 'QR Code';
+  };
+
+  const getFilenameSafe = () => {
+    if (!qrName.trim()) return 'qr-code';
+    return qrName.trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-')         // Replace spaces with hyphens
+      .replace(/-+/g, '-')          // Replace multiple hyphens with single
+      .replace(/^-|-$/g, '');       // Remove leading/trailing hyphens
+  };
+
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
     const qrCodeElement = document.getElementById('qr-code');
     const svgData = new XMLSerializer().serializeToString(qrCodeElement);
+    const displayName = getDisplayName();
     
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>QR Code</title>
+          <title>${displayName}</title>
           <style>
             body {
               margin: 0;
@@ -124,7 +142,7 @@ function App() {
           </style>
         </head>
         <body>
-          <h1>QR Code</h1>
+          <h1>${displayName}</h1>
           <div class="qr-container">
             ${svgData}
             <div class="qr-info">
@@ -152,18 +170,34 @@ function App() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <div className="mb-6">
-            <label htmlFor="text-input" className="block text-sm font-medium text-gray-700 mb-2">
-              Enter text or URL:
-            </label>
-            <input
-              id="text-input"
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="https://example.com or any text..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-            />
+          <div className="mb-6 space-y-4">
+            <div>
+              <label htmlFor="name-input" className="block text-sm font-medium text-gray-700 mb-2">
+                QR Code Name (optional):
+              </label>
+              <input
+                id="name-input"
+                type="text"
+                value={qrName}
+                onChange={(e) => setQrName(e.target.value)}
+                placeholder="My QR Code, Business Card, Website Link..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="text-input" className="block text-sm font-medium text-gray-700 mb-2">
+                Enter text or URL:
+              </label>
+              <input
+                id="text-input"
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="https://example.com or any text..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              />
+            </div>
           </div>
 
           <div className="flex gap-4 mb-6">
